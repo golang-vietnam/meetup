@@ -1,5 +1,6 @@
 ## Golang Vietnam Meetup Wiki
 
+[![Offsite photo](https://raw.githubusercontent.com/HotelQuickly/WeAreHiring/master/images/offsite-20141119/photo1.jpg)](https://github.com/HotelQuickly/WeAreHiring/blob/master/additional-info/team-activities.md)
 
 The very first meetup event of Vietnamese Gophers with many helps from Dwarves Foundation, GDG Vietnam, Silicon Straits Saigon and Liti Solutions. 
 
