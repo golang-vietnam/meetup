@@ -1,3 +1,6 @@
+[![](http://golangvietnam.herokuapp.com/badge.svg)](http://golangvietnam.herokuapp.com "Golang Vietnam on Slack")
+
+
 ## Golang Vietnam Meetup Wiki
 
 [![Offsite photo](https://raw.githubusercontent.com/HotelQuickly/WeAreHiring/master/images/offsite-20141119/photo1.jpg)](https://github.com/HotelQuickly/WeAreHiring/blob/master/additional-info/team-activities.md)
@@ -21,3 +24,5 @@ Discuss all #golang related topics, meet other developers and other interesting 
 - FB Page: https://www.facebook.com/golang.org.vn
 - Github: https://github.com/golang-vietnam
 - Twitter: https://twitter.com/golangvietnam
+- Slack: [![](http://golangvietnam.herokuapp.com/badge.svg)](http://golangvietnam.herokuapp.com "Golang Vietnam on Slack")
+ 
