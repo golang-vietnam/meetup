@@ -1,0 +1,171 @@
+Go internals
+An invitation to golang/go source code
+6 Sep 2017
+
+Nguyen Duc Tam
+Anduin Transactions
+@gopher
+
+* Data structures and data types
+
+* Nil
+
+.play code/nil-1.go 
+
+- _nil_ is a typed value
+- "... unless the value is the predeclared identifier nil, which has no type" - Go specification
+- _nil_ differs if their types differ
+
+.link https://golang.org/doc/faq#nil_error Why is my nil error value not equal to nil?
+
+* Nil (2)
+
+.play code/nil-2.go
+
+"Nil is a predeclared identifier representing the zero value for a pointer, channel, func, interface, map, or slice types." - Go doc "builtin" package
+
+.link https://speakerdeck.com/campoy/understanding-nil Understanding Nil (slides)
+.link https://www.gmarik.info/blog/2016/understanding-golang-nil-value/ Understanding Golang nil value (blog)
+
+* Slices
+
+.play code/slice.go
+
+* Slices
+
+.image image/slice.png _ 500
+
+There are _3_ components of slice:
+- *Pointer*: Point to the start position of slice in the underlying array
+- *length* : the number of elements referred to by the slice
+- *capacity*: the number of elements in the underlying array
+
+* Bonus: How "append()" works?
+
+.link https://github.com/golang/go/blob/master/src/runtime/slice.go#L82 slice.go#L82
+
+.image image/slice-2.png 600 _
+
+* Maps
+
+.play code/map.go
+
+* Maps (2)
+
+.link http://github.com/golang/go/blob/master/src/runtime/hashmap.go hashmap.go
+
+.image image/map.png 480 _
+
+* Inside a map
+
+Maps in Go are implemented as a hash table.
+
+- The hash table is structured as an array of buckets
+- The number of buckets is always a power of 2
+- A hash key is generated, the low order orbits (LOB) of the generated hash key is used to select a bucket
+
+.image https://www.goinggo.net/images/goinggo/Screen+Shot+2013-12-31+at+6.35.43+PM.png 100 _
+
+* Inside a map (2)
+
+- There is an array with the top 8 high order bits (HOB) 
+- This array distinguishes each individual key/value pair
+- There is an array of bytes that store the key/value pairs
+- Key and value are packed together
+
+.image https://www.goinggo.net/images/goinggo/Screen+Shot+2013-12-31+at+7.01.15+PM.png 360 _
+
+* How maps grow
+A bucket stores only 8 key/value pair. If a new key is added, an overflow bucket is created.
+
+.image https://www.goinggo.net/images/goinggo/Screen+Shot+2013-12-31+at+7.12.06+PM.png 120 _
+
+.image image/map-3.png 300 _
+
+* sync.Map (Go 1.9)
+
+.link https://github.com/golang/go/issues/18177 sync:  add a Map to replace RWLock+map usage
+
+.play code/sync_map.go /START OMIT/,/END OMIT/
+
+* Inside sync.Map
+
+.image image/sync_map-1.png _ 800
+
+* sync.Map.Load
+
+.image image/sync_map_load.png _ 1000
+
+* sync.Map.Store
+
+.image image/sync_map_store.png _ 1000
+
+* Interfaces
+
+.play code/interface.go
+
+* Inside an interface
+
+.image image/itab.png _ 1000
+
+.image image/interfacetype.png _ 1000
+
+* Inside an interface (2)
+
+.image image/type.png _ 1000
+
+.link https://research.swtch.com/interfaces Go Data Structures Interfaces (by @rsc)
+.link https://speakerdeck.com/campoy/understanding-the-interface Understanding the interface (by @campoy)
+
+* Channels
+
+.play code/chan.go
+
+* Channel internal structure
+
+.link https://github.com/golang/go/blob/master/src/runtime/chan.go chan.go
+
+.image image/chan-1.png 450 _
+
+* Channel internal structure (2)
+- the receiving goroutines queue: a linked list without size limitation. Goroutines in this queue are called blocked receiving goroutines on this channel.
+- the sending goroutine queue: a linked list without size limitation. Goroutines in this queue are called blocked sending qgoroutines on this channel.
+- the value buffer queue. This is a circular queue. Its capacity is specified when createing the channel.
+  + If it reaches the capacity, the channel is called in full status
+  + If no values are stored in the value buffer queue, this channel is called in empty status
+  + For a zero-capacity channel, it is always in both full and empty status
+
+A channel is referenced by all the goroutines in either the sending or receiving queue, so if neither of the two queues is empty, the channel will not be garbage collected.
+
+* Do things on channels
+- query the value buffer capacity of the channel `cap(ch)`
+- query the current number of values in the value buffer `len(ch)`
+- close the channel `close(ch)`. A non-nil channel can be closed for once.
+- send a value, `v` to the channel `ch`<-`v`
+- receive (and take out) a value from the channel `v,`ok`=`<-`ch` (`ok` is optional)
+
+All these operations are already synchronized, so no further synchronizations are needed to perform these operations.
+
+.link http://www.tapirgames.com/blog/golang-channel Channels in Golang
+.link http://www.tapirgames.com/blog/golang-concurrent-select-implementation Golang Concurrent select implementation
+
+* package runtime
+
+.image image/runtime.png 450 _
+
+* runtime/HACKING.md
+
+.image image/runtime-hacking.png 600 _
+
+* Maybe next?
+
+Inside Go core libraries
+
+- How `template/html` helps us avoid XSS?
+- Why `encoding/json` is not too fast, and how to improve it by 3x speed?
+- How `database/sql` handle connections pool, and how to write new `sql.Driver`?
+
+Go compiler tool chain
+
+- How to use `go/parser` to write Go tools like `
+- How to user `go/types` to make type safe template engine and type safe orm?
