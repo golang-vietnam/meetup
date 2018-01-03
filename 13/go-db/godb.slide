@@ -1,0 +1,242 @@
+Go database/sql
+A deeper understanding
+2 Jan 2018
+
+Tran Tuan Linh
+iParking Hanoi
+@linxGnu
+
+* Database/sql internals
+
+* Connect to database
+.play code/driverHook.go /^func main/,/^}/
+- DSN (dataSourceName): a string that has an associated data structure used to describe a connection to a data source
+
+* Importing drivers
+.code code/driverHook.go /import/,/\)/
+.code code/driverHook.go /sql.Open/,/\)/
+- Magic code?? 
+- Actually, we could:
+  Import various drivers.
+  Use them at the same time.
+
+* Prerequisite to use database/sql correctly
+- Understanding database/sql
+.caption OF COURSE!
+- Understanding driver
+.caption WHAT????? 
+.caption BUT trust me, it's absolutely necessary!
+
+* Example
+.play code/normalQuery.go /^func main/,/^}/
+
+* Let's dig deeper
+- Inside database/sql is the world of interfaces 
+.code code/databaseSQLCore/driver.go /type Driver interface/,/^}/
+.code code/databaseSQLCore/driver.go /type Conn interface/,/^}/
+- Source: 
+.link https://github.com/golang/go/blob/master/src/database/sql/driver/driver.go database/sql/driver
+
+* Important interfaces (1)
+.caption import driver "database/sql/driver"
+- *driver.Driver* - we will brief it later
+- *driver.Conn* - for connection management (*)
+  ConnPrepareContext: to return a prepared statement, bound to connection, with context
+  ConnBeginTx: to start and return a new transaction, with context
+- *driver.Rows* - collection interface of query results
+
+* Important interfaces (2)
+- *driver.Tx* - to begin transaction
+- *driver.Stmt* - prepared statement
+  StmtExecContext - do Stmt.Exec with context
+  StmtQueryContext - do Stmt.Query with context
+- *driver.Execer* / *driver.ExecerContext* / *driver.Queryer* / *driver.QueryerContext*
+- What to remember here: 
+  Query / Exec with Context always requires NamedValue params
+
+* How driver and database/sql work together (1)
+- To *interface* with database/sql, each driver has to register itself  
+.code code/drivers/mysql/driver.go /func init/,/^}/
+- Above code call to database/sql core (_thread_safe_)
+.code code/databaseSQLCore/sql.go /func Register/,/^}/
+
+* How driver and database/sql work together (2)
+.image images/driverAndCore.png
+- Keynotes:
+  connection pool: pool of connections managed by database/sql
+  sql.driverConn: a wrapper around real driver's connection
+  driver's conn: a real TCP/IP connection to database, implements Execer/Queryer interface 
+
+* Understanding Flow (1)
+.image images/initializeDBObj.png
+- sql.Connect only create sql.DB instance and run its goroutine which listen to *openerCh*
+- *openerCh* is a channel to notify sql.DB to create/may create a new connection
+- There is no TCP/IP connection to Database at the moment
+
+* Understanding Flow (2)
+- To trigger a real connection open, we have to make a *query*
+- A query would try to get connection from pool:
+.image images/getConnActivities.png _ 730
+
+* Understanding Flow (3)
+- Process Cycle (occurs from previous stage):
+.image images/cycleProcess.png _ 630
+
+* Wow! 
+- Tracking states of connection pool is a complicated process
+- Mutex locks involve in various func/steps (almost everywhere) for thread safety
+- Main strategy is: connection pool keeps driverConn for reusing whenever it could
+- What we did not mention?
+  1. cleanerCh and cleaner process: when we set timeout (ConnMaxLifetime) for connections, 
+  a goroutine with timer.Tick to clean expired conn would be ran
+
+  2. dep map[finalCloser]depSet: sql.DB keeps track of dependencies like driverConn for 
+  various tasks
+
+  3. cleaner and opener process are excuted concurrently, run forever (until db.Close() is called)
+
+  4. datadbase/sql/convert.go: provide converter to transform results got from database to 
+  object/native value. Every rows.Scan call would end at convert.go
+
+* Role of Driver
+- Handling TCP/IP Message to/from Database
+- Implement required interfaces for database/sql caller
+.image images/fun.jpeg
+- Parsing query and *args* into database client protocol
+  Example: mysql requires client commit query in form of bytes with header, header command, body
+- *Argument* is parsed based on its type. If _arg_ has *Valuer* interface, driver should (must) call it
+.caption Do you still think that writing driver is impossible? I bet not!
+
+
+* SQL Driver Writing Guideline
+- Always remember of TCP Conn state
+- Implement as many interfaces from database/sql/driver as possible
+- Checkout C Client Api source code, almost sql databases have it
+- Scan/Valuer interfaces are your friends
+- You only have to manage 1 connection, don't worry!
+.image images/gomysql.png
+
+* Open discussion (at the end of the talk)
+- What is data structure of database/sql connection pool currently?
+- Can we improve it?
+- How connRequests that wait for idle/free conn organized?
+
+* Advanced SQL Usage 
+
+* Usage (0)
+- Store computing configuration in database, how we do it at iParking
+.code code/driverHook.go  /DDL/,/END DDL/
+- Computing configuration is often dynamic/complex object, could be changed in realtime
+- To archive it, a non style field like blob/longblob can be used to store it!!
+- In this case, we have *metadata*
+
+* Usage (1)
+- Scanner/Valuer interface for complex object
+.play code/advanceQuery.go /^func main/,/^}/
+
+* Usage (2)
+.code code/advanceQuery.go /func insertJonSnow/,/^}/
+.code code/advanceQuery.go /func insertDummy/,/^}/
+
+* Usage (3)
+.code code/advanceQuery.go /metadata definition/,/metadata end definition/
+
+* Usage (4)
+- Be careful with *LastInsertId*:
+.play code/lastInsertID.go /^func main/,/^}/
+
+* Usage (5)
+- Try to use prepared statement for batch insert/update/delete
+.play code/batchInsert.go /shouldAutoRollBack/,/done batch insert/
+
+* Advanced Error Handling
+
+* Basic error handling
+  func GetPersonByID(id int) (p *Person, found bool, err error) {
+    rows, err := db.Query("SELECT * FROM person WHERE id = ?", id)
+    
+    // this is not error at all. Mean that no record was found.
+    if err == sql.ErrNoRow { 
+      found, err = false, nil 
+      return
+    } else if found = err == nil; !found {
+      return
+    }
+
+    // TODO: parsing from rows to *Person here
+    return
+  }
+  
+* A bit advanced (1.1)
+.caption Ping is not always your friend. It belongs to *Driver*!
+.play code/ping.go /^func main/,/^}/
+
+* A bit advanced (1.2)
+- What we can do?
+  a. Just don't use Ping to test your connection!
+
+  b. To prevent overhead, use `SELECT 1`
+
+  c. Use library that handles reconnecting for you!
+
+* A bit advanced (2)
+- Although, a connection is reused forever by default in database/sql, what happens if database is *reseter*
+- Mysql (for example) has two timeout policies are *wait_timeout* and *interactive_timeout*
+  Firstly, each of them could cause connection closed without notifying to driver.
+  Then, driver send query through tcp conn, until then it knows about closed state.
+  Finally, Our query failed! 
+  
+  We got driver.ErrBadConn or *command out of sync*
+
+- So, what we can do again?
+  a. Depending on driver, this kind of error may differ, eg postgres never return *command out of sync*
+
+  b. It's necessary to detect and retry your query
+
+  c. Don't retry update/insert/update query to avoid duplication. 
+     Before executing them, make a ping with `SELECT 1`
+
+* A bit advanced (3.1)
+- Galera Cluster/Master Master Architecture causing much more troubles
+.image images/galera.png
+
+* A bit advanced (3.2)
+.image images/galeraFail.png _ 250
+- When a query pointed to failover node, it may be fail since this node need time to sync with other nodes.
+  Causing error: WSREP is not in ready state!
+- That's terrible! We don't know how to handle it since Ping/Select 1 are both ok!
+
+* A bit advanced (3.3)
+- So, what now?
+  a. You have to decect this kind of error your own
+
+  b. Don't try to query to recent failover node, move query workload to others
+
+  c. Use an external database proxy which fully supports for Galera/Master-Master Architecture
+
+  d. Use third party database-client libs
+
+  e. This kind of error also occurs in Master-Slave Architecture, there are many guidelines 
+     for failover.
+
+     My advice: only turn on networking connection from application to recent failover nodes 
+     after sync done!
+
+* @iParking 
+- To overcome errors, we use mssqlx for all kinds of SQL related.
+- It's not an ads, I have scars of handling errors. I wrote *mssqlx* for them!
+- mssqlx is further than that, we use it as a builtin database proxy
+
+.link https://mariadb.com/products/technology/maxscale @MaxScale
+  MariaDB MaxScale is the first choice in my mind for database proxy. But require large amount 
+  of effort and resource to control/deploy.
+
+  Our system consists of many microservices, data sharding manually, each service only connects
+  to small number of db nodes. Then it would be no need to use any kind of database proxy 
+  if we hd our own.
+
+* golang@iParking 
+- Whole backend of iParking written in Go
+- *gRPC* is our heart of communication between microservices
+- *etcd* for service discovery and realtime configuration storage
+- We are approaching Kafka and Kubernetes for various services/tasks
