@@ -1,0 +1,124 @@
+Design First
+ReSTful APIs with goa
+
+Golang Vietnam Meetup
+2 Jan 2018
+
+Dipl.-Ing. Vinh Hoi Le Chau
+Founder and CTO of Miss Moneypenny Technologies
+
+* Overview
+
+1. Why API design first?
+
+2. How goa works
+
+3. Demo
+
+* Why API design first
+
+*Read*code*
+
+.code init.go
+
+.code init2.go
+
+* Why API design first
+
+*Focus*on*structure*
+
+before
+
+.image deps_before.png _ 1000
+
+after
+
+.image deps_after.png _ 1000
+
+: see things allows focus
+
+* Why API design first
+
+*Docs*in*code*
+
+.code routes.go
+
+* Why API design first
+
+*Docs*in*markdown*
+
+.code doc.md
+
+: clutter, not validated
+
+* Why API design first
+
+*Driven*vs*Driven*
+
+- Backend often Domain/Model driven
+- Frontend often Prototype/Story driven
+- Timeline decoupling via API design
+
+
+* Why API design first
+
+*Driven*vs*Driven*
+
+CRUD, OO, MVC can lead to Naked Object pattern
+
+.image mvc.svg _ 300
+
+* Why API design first
+
+*Driven*vs*Driven*
+
+Focus on Use Case Layer
+
+.image clean.jpg _ 500
+
+: interview frontend
+: Mẫu hình lập trình
+
+* How goa works
+
+*Internal*DSL*
+
+.code subtemplates.go
+
+: Code generation evil
+
+* How goa works
+
+*OpenAPI*Swagger*
+
+.code swagger.yaml
+
+* How goa works
+
+1. Write design files in go (goa DSL)
+2. Run goa (e.g. with go:generate)
+3. Design is validated
+4. Generates .go files for routing, security, controllers, validation, models, tests
+5. Generates Swagger/OpenAPI files
+6. Wire controller
+7. Implement Handler
+8. Use Swagger to document, mock, test, communicate
+
+* Demo
+
+: define
+: generate
+: implement
+: testing
+
+* Thank you!
+
+* We are hiring!
+
+Fresher/Junior/Senior Software Engineers
+
+.image beach.jpg _ 800
+
+* We are hiring!
+
+.image qr.jpg _ 500

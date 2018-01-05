@@ -1,0 +1,16 @@
+swagger: "2.0"
+paths:
+  /api/subtemplate/{subTemplateID}/fields: // HL
+    get:
+      - in: path
+        name: subTemplateID
+        required: true
+        type: integer
+      produces:
+      - application/vnd.localizedpassfieldmedia+json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT:
+        - api:access
