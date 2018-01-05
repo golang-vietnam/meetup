@@ -35,8 +35,6 @@ after
 
 .image deps_after.png _ 1000
 
-: see things allows focus
-
 * Why API design first
 
 *Docs*in*code*
@@ -48,8 +46,6 @@ after
 *Docs*in*markdown*
 
 .code doc.md
-
-: clutter, not validated
 
 * Why API design first
 
@@ -76,16 +72,12 @@ Focus on Use Case Layer
 
 .image clean.jpg _ 500
 
-: interview frontend
-: Mẫu hình lập trình
-
 * How goa works
 
 *Internal*DSL*
 
 .code subtemplates.go
 
-: Code generation evil
 
 * How goa works
 
