@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package main;
+
+message Payload {
+    string A = 1;
+    string B = 2;
+    int32 C = 3;
+    string D = 4;
+    bool E = 5;
+    int64 F = 6;
+    string G = 7;
+}
