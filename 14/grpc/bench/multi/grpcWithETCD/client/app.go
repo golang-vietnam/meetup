@@ -17,7 +17,7 @@ const (
 	serviceName = "helloService"
 )
 
-var numWorker = 100
+var numWorker = 50
 var numRequest = 1000000
 var hClient HelloClient
 var successCounter uint64

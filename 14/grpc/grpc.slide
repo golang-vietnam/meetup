@@ -36,10 +36,10 @@ LINE Corp
 * Cons
 - Developing distributed systems can be complex
 - Multiple databases and transaction management can be painful
-- Developers must implement the inter-process communication mechanism
+- Developers must implement architecture and inter-process communication mechanism
 .image images/browndrink.jpg _ 330
 
-* Troubleshoot (in this talk)
+* Troubleshoot
 
 * Inter-Process Communication(1)
 - Interaction style dimension:
@@ -67,12 +67,9 @@ LINE Corp
   + latency of router/mux
   + latency of HTTP/1.x
 
-* Why gRPC?
-
 * 
 .image images/grpclogo.png _ 650
 .caption HTTP/2 & Google Protobuf
-
 
 * HTTP/2 Pros(1)
 - Streams and Multiplexing
@@ -120,9 +117,11 @@ LINE Corp
 - Cisco, Juniper, and Arista
 - [[https://github.com/line/armeria][LINE Armeria (via decorator)]]
 
-* It's enough?
-
 * How about HA and Scalability
+
+* HA and Scalability
+.image images/srvdiscovery1.png _ 500
+.caption [[https://www.nginx.com/blog/service-discovery-in-a-microservices-architecture/][Diagram from Nginx Blog]]
 
 * HA and Scalability
 - HA
@@ -131,10 +130,6 @@ LINE Corp
 - Scalability
   gain perf
   easy to add resources
-
-* HA and Scalability
-.image images/srvdiscovery1.png _ 500
-.caption [[https://www.nginx.com/blog/service-discovery-in-a-microservices-architecture/][Diagram from Nginx Blog]]
 
 * HA and Scalability
 - Needs to know the network of a service instance to make request

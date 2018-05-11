@@ -59,7 +59,7 @@ func main() {
 				time.Sleep(10 * time.Millisecond)
 			}
 
-			ctx, cancel := context.WithTimeout(context.Background(), 500*time.Millisecond)
+			ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
 			lease, er := cli.Grant(ctx, 1)
 			if er != nil || lease == nil {
 				cancel()
@@ -70,7 +70,7 @@ func main() {
 			cancel()
 
 			// attach key with lease
-			ctx, cancel = context.WithTimeout(context.Background(), 500*time.Millisecond)
+			ctx, cancel = context.WithTimeout(context.Background(), 50*time.Millisecond)
 			resolver := &etcdnaming.GRPCResolver{Client: cli}
 			if er = resolver.Update(ctx, serviceName, naming.Update{
 				Op:   naming.Add,
