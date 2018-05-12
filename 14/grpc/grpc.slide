@@ -1,0 +1,235 @@
+Microservices with gRPC and etcd
+Service discovery and Load balancer
+11 May 2018
+
+Tran Tuan Linh
+LINE Corp
+@linxGnu
+
+* Microservices
+
+* Abstract
+- A decentralized approach to build system as a suite of small services, which implement business capabilities
+- Each service running in its own process and communicating with lightweight mechanisms
+- Services are loosely coupled, independently deployable
+- Break apart large monolithic codebase to smaller one
+.image images/ms.png
+
+* Pros(1)
+- Independently develop and deploy service
+  + enable better maintainability in complex, large, and highly-scalable systems
+- Scalable and reusable
+  + components can be spread across multiple servers or even multiple data centers
+- Better fault isolation
+  + one microservice fails, the others will continue to work
+  + simplify observability and security monitoring
+- Easy integration and automatic deployment, CI/CD
+- Work very well with containers
+  + resource provisioning - adding workload processing capacity
+  + resource utilization - limit and monitor CPU, mem
+
+* Pros(2)
+- Different services can be written in different languages
+- Increase the autonomy of individual development teams
+.image images/team.png _ 630
+
+* Cons
+- Developing distributed systems can be complex
+- Multiple databases and transaction management can be painful
+- Developers must implement architecture and inter-process communication mechanism
+.image images/browndrink.jpg _ 330
+
+* Troubleshoot
+
+* Inter-Process Communication(1)
+- Interaction style dimension:
+  + one‑to‑one: each client request is processed by exactly one service instance
+  + one‑to‑many: each request is processed by multiple service instances
+- Interaction style dimension:
+  + synchronous: block-wait style
+  + asynchronous: doesn’t block while waiting for a response
+.image images/ipc.png _ 830
+
+* Inter-Process Communication(2)
+.image images/pubsub.png _ 830
+.caption Pub/Sub
+
+* Inter-Process Communication(3)
+.image images/rest.png _ 830
+.caption Synchronous Rest API
+
+* Inter-Process Communication(4)
+- There are many cases in which we need synchronous block-wait style
+- Usually HTTP/1.x Rest API with Json/XML
+  + serialization/deserialization
+- Problems:
+  + Json/XML encoding/decoding overhead, cpu intensive
+  + latency of router/mux
+  + latency of HTTP/1.x
+
+* 
+.image images/grpclogo.png _ 650
+.caption HTTP/2 & Google Protobuf
+
+* HTTP/2 Pros(1)
+- Streams and Multiplexing
+  + single HTTP/2 connection can contain multiple concurrently open streams
+  + stream is an independent, bi-directional sequence of frames
+  + HTTP/1.x clients need to use multiple connections to achieve concurrency and reduce latency
+- Header compression
+  + compresses request and response header metadata using the HPACK
+  + HTTP/1.x does not compress request and response headers, causing unnecessary network traffic
+- Allows prioritization of requests
+  + important requests complete more quickly 
+
+* HTTP/2 Pros(2)
+.image images/http2.svg _ 400 
+.image images/stream.svg _ 400
+
+* HTTP/2 vs HTTP/1.x Benchmark
+.image images/b1.png _ 450
+.image images/b2.png _ 450
+.caption Benchmark by Ragnar Lönn, the founder of Load Impact
+
+* Google Protobuf
+- Language-neutral
+- Platform-neutral
+- Strongly type
+- Flexible, efficient, automated mechanism for serialization/deserialization of structured data
+
+* Protobuf vs Json Benchmark
+- Benchmark at [[https://blog.dgraph.io/post/protobuf/][dgraph.io]]:
+  BenchmarkToJSON_1000_Director-2  500  2512808 ns/op  560427 B/op  9682 allocs/op
+  BenchmarkToPB_1000_Director-2   2000  1338410 ns/op  196743 B/op  3052 allocs/op
+- Benchmark at  [[https://auth0.com/blog/beating-json-performance-with-protobuf/][auth0]]:
+.image images/b3.png _ 550
+
+* gRPC
+- Fast, efficient RPC powered by Google
+- Strongly type
+- Benefits from protobuf and HTTP/2
+- Built for microservices communication and others
+
+* gRPC in Production
+- [[https://developers.googleblog.com/2015/02/introducing-grpc-new-open-source-http2.html][Google]]
+- Square
+- CoreOS
+- Cisco, Juniper, and Arista
+- [[https://github.com/line/armeria][LINE Armeria (via decorator)]]
+
+* How about HA and Scalability
+
+* HA and Scalability
+.image images/srvdiscovery1.png _ 500
+.caption [[https://www.nginx.com/blog/service-discovery-in-a-microservices-architecture/][Diagram from Nginx Blog]]
+
+* HA and Scalability
+- HA
+  we need to know whenever a service not avaiable
+  switch workload
+- Scalability
+  gain perf
+  easy to add resources
+
+* HA and Scalability
+- Needs to know the network of a service instance to make request
+- Traditional application running on physical hardware 
+  + the network locations of service instances are relatively static
+  + read address from config file
+- In a modern, cloud‑based microservices application
+  + instances have dynamically assigned network locations
+  + changes dynamically because of autoscaling, failures, and upgrades
+
+* We need mechanism to overcome issue
+
+* Service discovery
+- Service discovery is about finding the network location of a service provider
+  whenever a service instance is available
+- Service registry is a key part of service discovery (quote from [[https://www.nginx.com/blog/service-discovery-in-a-microservices-architecture/][Nginx Blog]])
+  + database containing the network locations of service instance
+  + when service instance terminates/alive, service registry remove/add it from/to the database
+  + needs to be highly available and up to date
+- Patterns:
+  + Client‑Side Discovery
+  + Server‑Side Discovery
+
+* Client‑Side Discovery
+.image images/clientside.png _ 500
+.caption [[https://www.nginx.com/blog/service-discovery-in-a-microservices-architecture/][Diagram from Nginx Blog]]
+
+* Server‑Side Discovery
+.image images/serverside.png _ 800
+.caption [[https://www.nginx.com/blog/service-discovery-in-a-microservices-architecture/][Diagram from Nginx Blog]]
+
+* Load Balancer (LB)
+- Proxy LB (L3/4/7)
+  track backend
+  distribute workload
+  transparent backends to client 
+- Client-Side LB
+  client is aware of multiple backend servers
+  keeping track of available servers, their workload, implements the load balancing algorithms
+
+* Proxy LB
+.image images/lbproxy.png _ 700
+.caption [[https://grpc.io/blog/loadbalancing][Diagram from gRPC.io]]
+
+* Client-Side LB
+.image images/clientlb.png _ 600
+.caption [[https://grpc.io/blog/loadbalancing][Diagram from gRPC.io]]
+
+* Choose between Proxy and Client-Side LB
+.image images/usecase.png _ 1000
+.caption [[https://grpc.io/blog/loadbalancing][Diagram from gRPC.io]]
+
+* What does it mean?
+- Proxy LB would be inefficient when considering request heavy services
+  quote from talk of Masahiro Ide (LINE Corporation) at LINE Vietnam Opening Day, March 31st 2018
+- Proxy LB theoretically become a performance bottleneck
+- Proxy LB add network hop
+- Proxy LB L3/4 is too simple, simply copied between the client connection to the backend connection
+  poor workload distribution
+- Proxy LB L7 terminates and parses the HTTP/2 protocol before route to appropriate backend
+  add overhead to each request
+
+* Currently
+- Not much Proxy LB for gRPC
+  + HAProxy (L3/4): workload not distributed well
+  + Nginx (1.13.10) gRPC Proxy: immature, buggy
+- Client-Side LB for gRPC is better choice
+.image images/think.jpg _ 300
+
+* Choices
+- [[https://coreos.com/etcd/][ETCD by CoreOS]]
+- [[https://www.consul.io][Consul by HashiCorp]]
+- [[https://zookeeper.apache.org][Apache ZooKeeper]]
+- [[https://github.com/Netflix/eureka][Netflix Eureka & Ribbon]]
+- [[https://line.github.io/centraldogma/][LINE CentralDogma]]
+
+* Let's play with ETCD
+
+* ETCD
+- Distributed key value storage
+- Backend for service discovery and stores cluster state and configuration in [[https://kubernetes.io][Kubernetes]]
+- Cluster state and configuration and provides a global lock service in [[https://www.cloudfoundry.org][Cloud Foundry]]
+- Play critical point in many other products
+
+* How service discovery work in ETCD?
+- Lease keepalive model
+- Lease is time limited/time-to-live (TTL) token
+- Service instance register itself (attach key) with a lease
+- Service instance keepalive lease frequently
+- When a lease `die`, means service instance no longer available
+- ETCD notify client (especially gRPC Client) about service state changes
+  client will be notified of avaiable service instance in real time
+  client - ETCD communication is gRPC Bi-directional streaming! Wow!
+- gRPC + ETCD + ETCD LB = Client-Side LB, Service Discovery = powerful
+
+* Demo
+
+* References
+- [[https://developers.google.com/web/fundamentals/performance/http2/][Google Developer: http/2]]
+- [[https://www.youtube.com/watch?v=-2sWDr3Z0Wo][gRPC at Square]]
+- [[https://www.youtube.com/watch?v=WQeJACgLAyU][gRPC at CoreOS]]
+- [[https://www.cisco.com/c/en/us/td/docs/switches/datacenter/nexus9000/sw/7-x/programmability/guide/b_Cisco_Nexus_9000_Series_NX-OS_Programmability_Guide_7x/b_Cisco_Nexus_9000_Series_NX-OS_Programmability_Guide_7x_chapter_010111.html][Cisco]]
+- [[https://www.nginx.com/blog/service-discovery-in-a-microservices-architecture/][Nginx: service discovery in a microservices architecture]]
