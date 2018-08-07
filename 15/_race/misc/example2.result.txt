@@ -1,0 +1,16 @@
+==================
+WARNING: DATA RACE
+Write at 0x00c4200861b0 by goroutine 6:
+  main.main.func1()
+      /Users/duythinht/workspace/meetup/example2.go:9 +0x3b
+
+Previous read at 0x00c4200861b0 by main goroutine:
+  main.main()
+      /Users/duythinht/workspace/meetup/example2.go:12 +0xa4
+
+Goroutine 6 (running) created at:
+  main.main()
+      /Users/duythinht/workspace/meetup/example2.go:8 +0x93
+==================
+Found 1 data race(s)
+exit status 66

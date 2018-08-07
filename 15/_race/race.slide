@@ -1,0 +1,60 @@
+Data races in Go
+
+7 Aug 2018
+
+Thinh Tran
+Software engineer
+duythinht@gmail.com
+http://@duythinht
+
+* What is value of count?
+.play ./code/example1.go
+
+* Data races
+
+When two+ goroutines concurrently access a shared memory location, at least one access is write.
+
+.play ./code/example2.go
+
+* What happended?
+.image ./images/race1.png
+
+* Concurrency
+.play ./code/example3.go
+
+* Concurrency
+.image ./images/race2.jpg
+
+* Race detector
+
+.code ./misc/race_detector.sh
+.code ./misc/example2.result.txt
+
+* Race detector
+- Go v1.1 (2013)
+- Based on C/C++ ThreadSanitizer
+- Integrated with go tool chain
+- As August 2015:
+    ~ 1200 races in Google's codebase
+    ~ 100 in Go stdlib
+    100+ in chromium
+    ...
+- Program slowdown 5-15x
+- Memory usage 5-10x
+
+* How to prevent data races?
+
+Serialize memory access
+
+- Lock/Unlock using `sync.Mutex` or `sync.RWMutex`
+- Lazy initialization using `sync.Once`
+- Using `sync.atomic` for synchronization primitives
+- Synchronization between goroutines using go channel
+
+* References
+
+.link https://blog.golang.org/race-detector Go blog, race detector
+.link https://golang.org/doc/articles/race_detector.html Data race detector
+.link https://golang.org/ref/mem#tmp_10 The Go memory model
+.link https://github.com/google/sanitizers/wiki/ThreadSanitizerAlgorithm ThreadSanitizerAlgorithm
+.link https://www.infoq.com/presentations/go-race-detector Looking inside a Race detector
