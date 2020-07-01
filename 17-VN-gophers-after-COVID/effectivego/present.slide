@@ -1,0 +1,140 @@
+Effective Go
+
+Vo Minh Khiem
+28 June 2020
+vominhkhiem212@gmail.com
+
+* Agenda:
+- Readability
+- Type Conversion/Assertion
+
+* Readability
+
+* The purpose of Go:
+
+- The goals of the Go project were to eliminate the slowness and clumsiness of software development at Google.
+- To make the process more productive and scalable.
+-> The language was designed by and for people who write—and read and debug and maintain—large software systems.
+
+* Bad Function Arguments
+
+.code ./example/function/bad.go
+
+* What it looks like in My VSCode
+
+.image ./image/baddocfunction.png _ 1000
+
+* Autocomplete do their best
+
+.image ./image/typingfunction.png _ 1000
+
+* We can do it better
+
+.code ./example/function/good.go
+
+* Even better when group the arguments with the same data type
+
+.code ./example/function/better.go
+
+* Autocomplete help us to work more effective
+
+.image ./image/goodautocomplete.png _ 1000
+
+* Your Client want to separate normal product with promotion product when checkout
+
+- You add the flag isPromotion to check if the product is a promotion product
+- You pass the promotion flag into function CreateOrder argument
+
+* Your CreateOrder function will look like
+
+.code ./example/function/passbool.go
+
+* 6 months later, you modify this function because it changes again
+
+.code ./example/function/addrequestion.go
+
+* Should not pass the boolean into function parameters
+
+Instead, we can...
+
+* We can check for the bool value first, and choose what function to run
+
+.code ./example/function/switch.go
+
+* Go syntax inspired from C, which limits the code block in "{}"
+
+.code ./example/return/bad.go
+
+* Go code look better when we separate the block
+
+.code ./example/return/good.go
+
+* Now let's rewrite our processRequest function
+
+.code ./example/function/returnfirst.go
+
+* 1 month later, Client wants you to logs the order, see the Quote of Order
+
+.code ./example/function/addquote.go
+
+* 2 months later, Client wants to see the Transaction
+
+.code ./example/function/addtransaction.go
+
+* 3 months later, Client wants to see the Invoice
+
+.code ./example/function/addinvoice.go
+
+* Go lets you return multiple values, but not this way
+
+- Two to Three return value is good, keep it small
+- Assign a meaningful name to the return value
+
+* A much better version
+
+.code ./example/function/betterreturn.go
+
+* Type Conversion/Assertion
+
+* The reason why Go have those two type of type convert/assert
+
+- Go is a "static type" language
+- Go also have the interface, which is anything
+- Go lets you pass an interface as a function argument
+
+=> _We_ _need_ _to_ _convert_ _interface_ _to_ _specific_ _type_ _to_ _process_ _further_
+
+* Type Conversion
+
+A type conversion converts one *(non-interface)* type to another, e.g. a `var` `x` `uint8` to and int64 like `var` `id` `int64` `=` `int64(x)`
+
+`v` `=` `aType(t)` // type conversion
+
+* What if x cannot convert to int64
+
+.code ./example/conversion/notmatch.go
+
+* Type Assertion
+
+A type assertion asserts that t *(an* *interface* *type)* actually is an aType and t will be an aType; namely, the one wrapped in the t interface
+
+`v` `=` `t.(aType)` // type assertion
+
+* What if v is not aType
+
+.code ./example/assertion/notok.go
+
+* Luckily, Go give you the power to check whether interface not satisfy aType
+
+.code ./example/assertion/ok.go
+
+* The Power of Map
+
+.code ./example/map/assertion.go
+
+* We can use this tip to work with Enum output, Simplicity go first!
+
+* Recap
+
+- Go is an open source programming language that makes it easy to build *simple*, *reliable*, and *efficient* software.
+- An effective way to use a tool is to use it to do the purpose of it, keep your Go code: *simple*, *readable*, to be able to *maintain*
