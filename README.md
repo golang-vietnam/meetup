@@ -1,4 +1,4 @@
-[![](http://golangvietnam.herokuapp.com/badge.svg)](http://golangvietnam.herokuapp.com "Golang Vietnam on Slack")
+[![Discord Chat](https://img.shields.io/discord/787711350809296916.svg)](https://discord.gg/xqHJEa5CSN)  
 
 
 ## Golang Vietnam Meetup Wiki
@@ -24,5 +24,5 @@ Discuss all #golang related topics, meet other developers and other interesting 
 - FB Page: https://www.facebook.com/golang.org.vn
 - Github: https://github.com/golang-vietnam
 - Twitter: https://twitter.com/golangvietnam
-- Slack: [![](http://golangvietnam.herokuapp.com/badge.svg)](http://golangvietnam.herokuapp.com "Golang Vietnam on Slack")
+- Discord: [![Discord Chat](https://img.shields.io/discord/787711350809296916.svg)](https://discord.gg/xqHJEa5CSN)  
  
